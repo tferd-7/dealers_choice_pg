@@ -44,7 +44,48 @@ app.get('/tasks', async(req, res, next)=> {
         next(ex);
     }
 
-})
+});
+
+app.get('/tasks/:category', async(req, res, next)=> {
+    try {
+        const category = req.params.category;
+        const tasks = await Task.findAll({
+            where: {
+                category
+            }
+        });
+        
+        res.send(`
+            <html>
+                <head>
+                    <title>${ category } Tasks</title>
+                </head>
+                <body>
+                    <h1>Task Master (${ tasks.length })</h1>
+                    <h2><a href="/tasks"><< Back</a></h2>
+                    <h3>${ category }</h3>
+                    <ul>
+                        ${
+                            tasks.map( task => {
+                                return `
+                                <a href='${task.url}'><li>${task.name}</li></a>
+                                `
+                            }).join('')
+                        }
+                    </ul>
+
+
+                </body>
+            </html>
+        
+        `);
+
+    }
+    catch(ex) {
+        next(ex);
+    }
+
+});
 
 const run = async() => {
     try {
