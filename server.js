@@ -1,9 +1,23 @@
 const express = require('express');
 const app = express();
+const methodOverride = require('method-override');
 
 const { syncAndSeed, models: { Task } } = require('./db');
 
 app.get('/', (req, res)=> res.redirect('/tasks'));
+
+app.use(methodOverride('_method'));
+
+app.delete('/tasks/:id', async(req, res, next)=> {
+    try {
+        const task = await Task.findByPk(req.params.id);
+        await task.destroy();
+        res.redirect(`/tasks/${task.category}`)
+    }
+    catch(ex) {
+        next(ex);
+    }
+})
 
 app.get('/tasks', async(req, res, next)=> {
     try {
@@ -68,7 +82,12 @@ app.get('/tasks/:category', async(req, res, next)=> {
                         ${
                             tasks.map( task => {
                                 return `
-                                <a href='${task.url}'><li>${task.name}</li></a>
+                                    <li>
+                                        <a href='${task.url}'>${task.name}</a>
+                                        <form method='POST' action='/tasks/${task.id}?_method=DELETE'>
+                                            <button>x</button>
+                                        </form>
+                                    </li>
                                 `
                             }).join('')
                         }
